@@ -12,6 +12,7 @@ void kernel_main(void)
     process_t *p1, *p2, *p3, *p4;
 
     heap_init();
+    paging_init();
     screen_init();
     process_init();
     scheduler_init();
@@ -22,27 +23,14 @@ void kernel_main(void)
     printi(539);
     println();
 
-    process_create(&processA);
-    print("process count");
-    printi(processes_count);
-    println();
-    print(" A process.eip = ");
-    printi(&processA);
-    println();
+    p1 = process_create(&processA);
+  
     p2 = process_create(&processB);
-    print("process count");
-    printi(processes_count);
-    println();
-    print(" A process.eip = ");
-    printi(&processB);
-    println();
+ 
     p3 = process_create(&processC); 
-    print("process count");
-    printi(processes_count);
-    println();
-    print(" A process.eip = ");
-    printi(&processC);
-    println();
+   
+    p4 = process_create(&processD); 
+   
 
     while (1)
         ;

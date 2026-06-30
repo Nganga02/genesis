@@ -10,6 +10,7 @@ extern page_directory
 global load_page_directory
 global enable_paging
 global load_context
+global jump_next_process
 
 global dev_write_byte
 global dev_write_word
@@ -222,6 +223,10 @@ load_context:
     mov ebx, [ebx + p_ebx]
     pop ebp
     ret
+
+jump_next_process:
+    sti
+    jmp [next_process + 36]
 
 
 enable_paging:
@@ -484,18 +489,13 @@ isr_32:;handles the timer interrupt;
     
     call scheduler
 
-    mov edx, [new_line]
-    add edx, 160d
+   
     mov al, 0x20
     out 0x20, al
 
 
     add esp, 0x28
     push run_next_process
-
-    mov WORD [0xb8000 + edx], 0x0f48
-
-    mov dword [new_line], edx
 
     iret
 
