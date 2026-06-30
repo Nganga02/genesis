@@ -1,5 +1,6 @@
 #include "../include/process.h"
 #include "../include/heap.h"
+#include "../include/print.h"
 
 int processes_count;
 int current_pid;
@@ -23,7 +24,9 @@ process_t *process_create(int *base_addr)
     new_process->context.ebp = 0;
     new_process->context.esi = 0;
     new_process->context.edi = 0;
-    new_process->context.eip = (int)base_addr;
+    new_process->context.eip = (unsigned int)base_addr;
+    printi(new_process->context.eip);
+    println();
     new_process->state = READY;
     new_process->base_address = base_addr;
     processes[new_process->pid] = new_process;

@@ -3,11 +3,13 @@ extern kernel_main
 extern interrupt_handler
 extern scheduler
 extern run_next_process
+extern next_process
 
 extern page_directory
 
 global load_page_directory
 global enable_paging
+global load_context
 
 global dev_write_byte
 global dev_write_word
@@ -48,6 +50,7 @@ init_video_mode:
 
 enter_protected_mode:
     mov eax, cr0
+
     or eax, 1
     mov cr0, eax
 
@@ -103,7 +106,7 @@ remap_pic:
 
         ;---------------;
 
-    mov al, 0h
+        mov al, 0h
     make_pic_master_enables_all_irqs:
         out 0x21, al
 
@@ -123,6 +126,74 @@ load_task_register:
     ret
 
 
+MEMORY_MAP_BUFFER equ 0x8000
+
+E820SIGNATURE equ 0x534d4150
+
+
+get_memory_map:
+    push edx
+    xor ebx, ebx
+    mov eax, 0
+    mov edx, E820SIGNATURE
+    mov ax, 0xe820
+    mov ecx, 24
+
+
+    mov es, ax
+    mov di, MEMORY_MAP_BUFFER
+
+
+    int 15h
+    jc  .exit ; means an unsupported function
+    mov edx, E820SIGNATURE ;some BIOSes clear the register
+
+
+    cmp eax, edx
+    jne .exit
+
+
+    test ebx, ebx ;we have reached end of memory or the list is only one entry long
+    je .next
+
+
+    .e820_loop:
+        mov ax, 0xe820
+        mov edx, E820SIGNATURE
+        mov ecx, 24
+
+        int 15h
+        jc .exit
+
+        cmp eax, E820SIGNATURE
+        jne .exit
+        
+        test ebx, ebx
+        je .exit
+
+        cmp dword [es:di + 16], 1
+        jne .next
+
+        ;base low address considering endianness
+        mov eax, [es:di]
+
+        ;length low nibble
+        mov edx, [es:di + 8]
+
+        test edx, edx
+        je .next
+
+
+    .next:
+        add di, 24
+
+
+    .exit:
+        stc 
+        pop edx
+        ret
+
+
 bits 32
 load_page_directory:
     mov eax, [page_directory]
@@ -131,6 +202,27 @@ load_page_directory:
     mov word [0xb8000], 0x0f41 ; A
 
     ret
+
+p_eax equ 0
+p_ebx equ 4
+p_ecx equ 8
+p_edx equ 12 
+p_esi equ 24
+p_edi equ 28
+
+load_context:
+    push ebp
+    mov ebp, esp
+    mov ebx, [next_process]
+    mov eax, [ebx]
+    mov ecx, [ebx + p_ecx]
+    mov edx, [ebx + p_edx]
+    mov esi, [ebx + p_esi]
+    mov edi, [ebx + p_edi]
+    mov ebx, [ebx + p_ebx]
+    pop ebp
+    ret
+
 
 enable_paging:
     mov eax, cr0
@@ -286,6 +378,7 @@ isr_12:
 
 isr_13:
     cli
+    ;push dword [esp]
     push 13
     jmp isr_basic
 
@@ -380,17 +473,19 @@ isr_31:
     jmp isr_basic
 
 ;----------------------------;
- 
+new_line dd 402
+
 isr_32:;handles the timer interrupt;
     cli
-    pusha
+    pushad
 
     mov eax, [esp + 32]
     push eax
-
+    
     call scheduler
 
-
+    mov edx, [new_line]
+    add edx, 160d
     mov al, 0x20
     out 0x20, al
 
@@ -398,6 +493,9 @@ isr_32:;handles the timer interrupt;
     add esp, 0x28
     push run_next_process
 
+    mov WORD [0xb8000 + edx], 0x0f48
+
+    mov dword [new_line], edx
 
     iret
 
@@ -485,7 +583,6 @@ isr_basic:
     call interrupt_handler
 
     add esp, 4
-
     sti
     iret
     

@@ -19,3 +19,4 @@ void write_disk_chs(int, short *);
 
 
 #endif /*H_ATA_H*/
+    
