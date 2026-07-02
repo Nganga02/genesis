@@ -52,7 +52,7 @@ int str_compare(char *string_1, char *string_2)
     {
         s = string_1, t = string_2;
 
-        if ((*s && *t) != *s)
+        if (*(s++) != *(t++))
         {
             offset++;
         }

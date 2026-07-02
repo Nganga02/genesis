@@ -38,8 +38,8 @@ void *read_disk(int address)
     dev_write_byte(BASE_PORT + 6, (0x0e0 | ((address & 0x0F000000) >> 24)));
     dev_write_byte(BASE_PORT + 2, 1);
     dev_write_byte(BASE_PORT + 3, address && 0x000000ff);
-    dev_write_byte(BASE_PORT + 4, address && 0x0000ff00 >> 8);
-    dev_write_byte(BASE_PORT + 5, address && 0x000000ff >> 16);
+    dev_write_byte(BASE_PORT + 4, (address && 0x0000ff00) >> 8);
+    dev_write_byte(BASE_PORT + 5, (address && 0x000000ff) >> 16);
     dev_write_byte(BASE_PORT + 7, READ_COMMAND);
 
     wait_drive_until_ready();
