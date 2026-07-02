@@ -1,6 +1,8 @@
 #include "./include/print.h"
 #include "./include/paging.h"
 #include "./include/scheduler.h"
+#include "./include/heap.h"
+#include "./include/filesystem.h"
 
 void processA();
 void processB();
@@ -16,6 +18,7 @@ void kernel_main(void)
     screen_init();
     process_init();
     scheduler_init();
+    file_system_init();
     print("Welcome to 539kernel!");
     println();
     print("We are now in Protected-mode");

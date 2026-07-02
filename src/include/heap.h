@@ -15,7 +15,7 @@ typedef struct block_t{
     int is_free;
     struct block_t *next;
     struct block_t *prev;
-    char *data[1] //pointer to one byte of memory
+    char *data[1]; //pointer to one byte of memory
 }block_t;
 
 typedef struct{
