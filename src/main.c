@@ -3,13 +3,15 @@
 #include "./include/scheduler.h"
 #include "./include/heap.h"
 #include "./include/filesystem.h"
+#include "./include/bootinfo.h"
+
 
 void processA();
 void processB();
 void processC();
 void processD();
 
-void kernel_main(void)
+void kernel_main(struct boot_info_t *boot_info)
 {
     process_t *p1, *p2, *p3, *p4;
 
@@ -24,6 +26,9 @@ void kernel_main(void)
     print("We are now in Protected-mode");
     println();
     printi(539);
+    println();
+    print("range count: ");
+    printi(boot_info->count);
     println();
 
     p1 = process_create(&processA);

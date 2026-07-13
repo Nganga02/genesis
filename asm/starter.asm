@@ -16,6 +16,7 @@ global dev_write_byte
 global dev_write_word
 global dev_read
 
+BOOT_INFO equ 0x8000
 
 start:
     mov ax, cs
@@ -23,6 +24,7 @@ start:
     
     call load_gdt
     call init_video_mode
+    call get_memory_map
     call enter_protected_mode
     call setup_interrupts
     call load_task_register
@@ -127,9 +129,13 @@ load_task_register:
     ret
 
 
-MEMORY_MAP_BUFFER equ 0x8000
+MEMORY_MAP_BUFFER equ 0x5000
+
+RANGE_BUFFER      equ 0x7000
 
 E820SIGNATURE equ 0x534d4150
+
+range_count dd 0
 
 
 get_memory_map:
@@ -184,10 +190,22 @@ get_memory_map:
         test edx, edx
         je .next
 
+        ; length = base_address + length_of_usable_ram - 1 
+        add edx, eax
+        dec edx
+
+        mov esi, [range_count]
+        imul esi, 8
+
+        mov [RANGE_BUFFER + esi], eax
+        mov [RANGE_BUFFER + esi + 4], edx
+
+        inc dword [range_count]
+
 
     .next:
         add di, 24
-
+        jmp .e820_loop
 
     .exit:
         stc 
@@ -296,7 +314,15 @@ start_kernel:
     mov fs, eax
     mov gs, eax
 
+    mov ecx,[range_count]
+	mov esi, BOOT_INFO
+	mov dword [BOOT_INFO], RANGE_BUFFER
+	mov dword [BOOT_INFO + 4],ecx
+
     sti 
+    push BOOT_INFO
+
+
 
     call kernel_main
 

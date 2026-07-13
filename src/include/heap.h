@@ -1,12 +1,12 @@
 #ifndef H_HEAP_H
 #define H_HEAP_H
+#include "./utils.h"
 extern unsigned int heap_base;
 
 
 #define ALIGNMENT 8
 #define ALIGN(size) (((size)+(ALIGNMENT-1)) & ~(ALIGNMENT-1))
 
-typedef int size_t;
 /**
  * Memory block data structure
  */
