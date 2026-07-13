@@ -142,6 +142,8 @@ get_memory_map:
     push edx
     xor ebx, ebx
     mov eax, 0
+    mov ax, ds
+    mov es, ax
     mov edx, E820SIGNATURE
     mov ax, 0xe820
     mov ecx, 24
@@ -156,6 +158,7 @@ get_memory_map:
 
     cmp eax, edx
     jne .exit
+
 
     jmp .save_address
 
@@ -204,14 +207,17 @@ get_memory_map:
         add di, 24
         jmp .e820_loop
 
+
     .return 
         pop edx
         ret
+
 
     .exit:
         stc 
         pop edx
         ret
+    
 
 
 bits 32
@@ -316,6 +322,11 @@ start_kernel:
     mov gs, eax
 
     mov ecx,[range_count]
+    mov eax, ecx
+    add al, '0'
+    mov ah, 0x0f
+    mov [0xb8000 + 800], ax
+
 	mov esi, BOOT_INFO
 	mov dword [BOOT_INFO], RANGE_BUFFER
 	mov dword [BOOT_INFO + 4],ecx
