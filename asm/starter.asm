@@ -146,8 +146,6 @@ get_memory_map:
     mov ax, 0xe820
     mov ecx, 24
 
-
-    mov es, ax
     mov di, MEMORY_MAP_BUFFER
 
 
@@ -159,9 +157,7 @@ get_memory_map:
     cmp eax, edx
     jne .exit
 
-
-    test ebx, ebx ;we have reached end of memory or the list is only one entry long
-    je .next
+    jmp .save_address
 
 
     .e820_loop:
@@ -174,9 +170,7 @@ get_memory_map:
 
         cmp eax, E820SIGNATURE
         jne .exit
-        
-        test ebx, ebx
-        je .exit
+    .save_address:
 
         cmp dword [es:di + 16], 1
         jne .next
@@ -204,8 +198,15 @@ get_memory_map:
 
 
     .next:
+        test ebx, ebx
+        je .return
+
         add di, 24
         jmp .e820_loop
+
+    .return 
+        pop edx
+        ret
 
     .exit:
         stc 
