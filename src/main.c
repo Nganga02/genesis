@@ -21,6 +21,10 @@ void kernel_main(struct boot_info_t *boot_info)
     process_init();
     scheduler_init();
     file_system_init();
+    println();
+    print("boot info address: ");
+    printi(boot_info);
+    println();
     print("Welcome to 539kernel!");
     println();
     print("We are now in Protected-mode");

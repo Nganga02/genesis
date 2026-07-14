@@ -4,6 +4,9 @@ extern interrupt_handler
 extern scheduler
 extern run_next_process
 extern next_process
+extern screen_init
+extern printi
+extern println
 
 extern page_directory
 
@@ -133,93 +136,68 @@ MEMORY_MAP_BUFFER equ 0x5000
 
 RANGE_BUFFER      equ 0x7000
 
-E820SIGNATURE equ 0x534d4150
+
+
+SMAP equ 0x534d4150
 
 range_count dd 0
 
-
 get_memory_map:
-    push edx
-    xor ebx, ebx
-    mov eax, 0
-    mov ax, ds
-    mov es, ax
-    mov edx, E820SIGNATURE
-    mov ax, 0xe820
-    mov ecx, 24
+    xor ebx,ebx
 
-    mov di, MEMORY_MAP_BUFFER
+    mov ax,0
+    mov es,ax
 
+    mov di,MEMORY_MAP_BUFFER
 
-    int 15h
-    jc  .exit ; means an unsupported function
-    mov edx, E820SIGNATURE ;some BIOSes clear the register
+    mov dword [range_count],0
 
+.e820_loop:
+    mov eax,0xE820
+    mov edx,0x534D4150
+    mov ecx,24
 
-    cmp eax, edx
-    jne .exit
+    int 0x15
+    jc .done
 
+    cmp eax,0x534D4150
+    jne .done
 
-    jmp .save_address
+    ; usable memory only
+    cmp dword [es:di + 16],1
+    jne .next
 
+    ; base low
+    mov eax,[es:di]
 
-    .e820_loop:
-        mov ax, 0xe820
-        mov edx, E820SIGNATURE
-        mov ecx, 24
+    ; length low
+    mov edx,[es:di + 8]
 
-        int 15h
-        jc .exit
+    test edx,edx
+    jz .next
 
-        cmp eax, E820SIGNATURE
-        jne .exit
-    .save_address:
+    ; end = base + length - 1
+    add edx,eax
+    dec edx
 
-        cmp dword [es:di + 16], 1
-        jne .next
+    mov esi,[range_count]
+    imul esi,8
 
-        ;base low address considering endianness
-        mov eax, [es:di]
+    mov [RANGE_BUFFER + esi],eax
+    mov [RANGE_BUFFER + esi + 4],edx
 
-        ;length low nibble
-        mov edx, [es:di + 8]
+    inc dword [range_count]
 
-        test edx, edx
-        je .next
+.next:
+    add di,24
 
-        ; length = base_address + length_of_usable_ram - 1 
-        add edx, eax
-        dec edx
+    test ebx,ebx
+    jne .e820_loop
 
-        mov esi, [range_count]
-        imul esi, 8
+.done:
+    ret
 
-        mov [RANGE_BUFFER + esi], eax
-        mov [RANGE_BUFFER + esi + 4], edx
-
-        inc dword [range_count]
-
-
-    .next:
-        test ebx, ebx
-        je .return
-
-        add di, 24
-        jmp .e820_loop
-
-
-    .return 
-        pop edx
-        ret
-
-
-    .exit:
-        stc 
-        pop edx
-        ret
     
-
-
 bits 32
 load_page_directory:
     mov eax, [page_directory]
@@ -315,25 +293,14 @@ start_kernel:
     mov eax, 10h
     mov ds, eax
     mov ss, eax
+    mov es, eax
 
     xor eax, eax
-    mov es, eax
     mov fs, eax
     mov gs, eax
 
-    mov ecx,[range_count]
-    mov eax, ecx
-    add al, '0'
-    mov ah, 0x0f
-    mov [0xb8000 + 800], ax
-
-	mov esi, BOOT_INFO
-	mov dword [BOOT_INFO], RANGE_BUFFER
-	mov dword [BOOT_INFO + 4],ecx
-
     sti 
     push BOOT_INFO
-
 
 
     call kernel_main
