@@ -290,6 +290,9 @@ dev_read:
 
 
 start_kernel:
+    mov esp, 0x90000
+    and esp, 0xfffffff0
+    mov ebp, esp
     mov eax, 10h
     mov ds, eax
     mov ss, eax
