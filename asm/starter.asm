@@ -302,6 +302,7 @@ start_kernel:
     mov fs, eax
     mov gs, eax
 
+
     mov eax, MEMORY_MAP_BUFFER
     mov DWORD[BOOT_INFO], eax
     xor eax, eax
@@ -310,6 +311,19 @@ start_kernel:
 
     sti 
     call screen_init
+    mov eax, DWORD [MEMORY_MAP_BUFFER]
+    call println
+    push eax
+
+    call printi
+    call println
+
+    mov eax, DWORD [range_count]
+    call println
+    push eax
+    call printi
+    call println
+    pop eax
     push BOOT_INFO
 
 
