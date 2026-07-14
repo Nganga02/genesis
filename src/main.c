@@ -13,11 +13,15 @@ void processD();
 
 void kernel_main(struct boot_info_t *boot_info)
 {
+    printi(boot_info);
+    printi(boot_info->range_set[0].range_start);
+    printi(boot_info->count);
     process_t *p1, *p2, *p3, *p4;
 
+    
     heap_init();
     paging_init();
-    screen_init();
+    // screen_init();
     process_init();
     scheduler_init();
     file_system_init();

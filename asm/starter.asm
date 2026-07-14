@@ -303,6 +303,7 @@ start_kernel:
     mov gs, eax
 
     sti 
+    call screen_init
     push BOOT_INFO
 
 
