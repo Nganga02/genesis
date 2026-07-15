@@ -1,7 +1,7 @@
 #include "./rangeset.h"
 
 struct boot_info_t{
-    Range range_set[32];
+    Range *range_set;
     int count;
 };
 

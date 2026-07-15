@@ -21,12 +21,18 @@ global dev_read
 
 BOOT_INFO equ 0x8000
 
+section .bss 
+range_count resd 1
+
+
+section .text
 start:
     mov ax, cs
     mov ds, ax 
     
     call load_gdt
     call init_video_mode
+
     call get_memory_map
     call enter_protected_mode
     call setup_interrupts
@@ -140,8 +146,6 @@ RANGE_BUFFER      equ 0x7000
 
 SMAP equ 0x534d4150
 
-range_count dd 0
-
 get_memory_map:
     xor ebx,ebx
 
@@ -150,6 +154,7 @@ get_memory_map:
 
     mov di,MEMORY_MAP_BUFFER
 
+   
     mov dword [range_count],0
 
 .e820_loop:
@@ -186,16 +191,32 @@ get_memory_map:
     mov [RANGE_BUFFER + esi],eax
     mov [RANGE_BUFFER + esi + 4],edx
 
+    mov eax, range_count      ; address of the variable
+    mov ebx, [range_count]    ; current value
+
     inc dword [range_count]
+
 
 .next:
     add di,24
 
+    ;cmp DWORD [range_count], 1
+    ;mov eax, [range_count]
+    ;je .halt
+
     test ebx,ebx
     jne .e820_loop
 
+
+
 .done:
     ret
+
+.halt:
+    hlt
+    jmp $
+
+
 
     
 bits 32
@@ -302,6 +323,7 @@ start_kernel:
     mov fs, eax
     mov gs, eax
 
+    
 
     mov eax, MEMORY_MAP_BUFFER
     mov DWORD[BOOT_INFO], eax
@@ -309,21 +331,27 @@ start_kernel:
     mov eax, [range_count]
     mov DWORD[BOOT_INFO + 4], eax
 
+    hlt
+    jmp $
+    
     sti 
     call screen_init
-    mov eax, DWORD [MEMORY_MAP_BUFFER]
+    mov ebx, DWORD [MEMORY_MAP_BUFFER]
     call println
-    push eax
+    call println
+    push ebx
 
     call printi
     call println
 
-    mov eax, DWORD [range_count]
+
+    mov ebx, DWORD range_count
     call println
-    push eax
+    push ebx
     call printi
     call println
-    pop eax
+
+
     push BOOT_INFO
 
 

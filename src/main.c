@@ -13,8 +13,7 @@ void processD();
 
 void kernel_main(struct boot_info_t *boot_info)
 {
-    printi(boot_info);
-    printi(boot_info->range_set);
+    printi(boot_info->range_set[0].range_start);
     printi(boot_info->count);
     process_t *p1, *p2, *p3, *p4;
 
@@ -27,7 +26,7 @@ void kernel_main(struct boot_info_t *boot_info)
     file_system_init();
     println();
     print("boot info address: ");
-    printi(boot_info->range_set[0].range_end);
+    printi((boot_info->range_set)[0].range_start);
     println();
     print("Welcome to 539kernel!");
     println();
