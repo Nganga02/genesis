@@ -331,8 +331,6 @@ start_kernel:
     mov eax, [range_count]
     mov DWORD[BOOT_INFO + 4], eax
 
-    hlt
-    jmp $
     
     sti 
     call screen_init
