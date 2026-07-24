@@ -13,6 +13,7 @@ void processD();
 
 void kernel_main(struct boot_info_t *boot_info)
 {
+    println();
     printi(boot_info->range_set[0].range_start);
     printi(boot_info->count);
     process_t *p1, *p2, *p3, *p4;
@@ -20,23 +21,19 @@ void kernel_main(struct boot_info_t *boot_info)
     
     heap_init();
     paging_init();
-    // screen_init();
+    screen_init();
     process_init();
     scheduler_init();
     file_system_init();
-    println();
-    print("boot info address: ");
-    printi((boot_info->range_set)[0].range_start);
-    println();
-    print("Welcome to 539kernel!");
-    println();
-    print("We are now in Protected-mode");
-    println();
-    printi(539);
-    println();
-    print("range count: ");
-    printi(boot_info->count);
-    println();
+    // println();
+    // print("\nboot info address: ");
+    // printi((boot_info->range_set)[0].range_start);
+    // println();
+    printf("\nBoot info address %d\n", (boot_info->range_set)[0].range_start);
+    printf("Welcome to 539kernel! \nWe are in protected mode\n%x\n", 539);
+    printf("Range count: %d\n", boot_info->count);
+   
+
 
     p1 = process_create(&processA);
   

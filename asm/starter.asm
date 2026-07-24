@@ -21,14 +21,15 @@ global dev_read
 
 BOOT_INFO equ 0x8000
 
-section .bss 
+section .bss  
 range_count resd 1
 
 
 section .text
 start:
-    mov ax, cs
-    mov ds, ax 
+    xor ax, ax
+    mov ds, ax
+    mov es, ax
     
     call load_gdt
     call init_video_mode
@@ -42,13 +43,31 @@ start:
 
 load_gdt:
     cli
+    xor eax, eax 
+    mov ax, ds;saving the adress of ds\
+    shl eax, 4
+    add eax, gdt
+    mov [gdt_base_address], eax
 
-    lgdt [gdtr-start]
+
+    lgdt [gdtr]
 
     ret
 
+load_idt:
+    xor eax, eax
+    mov ax, ds
+    shl eax, 4
+    add eax, idt
+    mov [idt_base_address], eax
+    
+    lidt[idtr]
+    ret
+
+
 
 init_video_mode:
+    
     mov ah, 0h 
     mov al, 03h
     int 10h
@@ -127,9 +146,6 @@ remap_pic:
     
     ret
 
-load_idt:
-    lidt[idtr - start]
-    ret
 
 load_task_register:
     mov ax, 40d
@@ -333,21 +349,6 @@ start_kernel:
 
     
     sti 
-    call screen_init
-    mov ebx, DWORD [MEMORY_MAP_BUFFER]
-    call println
-    call println
-    push ebx
-
-    call printi
-    call println
-
-
-    mov ebx, DWORD range_count
-    call println
-    push ebx
-    call printi
-    call println
 
 
     push BOOT_INFO

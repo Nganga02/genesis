@@ -25,7 +25,7 @@ process_t *get_next_process(void)
 void scheduler(int eip, int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int eax)
 {
     print("EAX = ");
-    printi(eax);
+    print_hex((unsigned int)eax);
 
     process_t *current_process = processes[curr_sch_pid];
 
